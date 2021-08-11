@@ -27,6 +27,7 @@ def largeScaleGraphTest(jungle_games, ejungle_games, x, y, summoner_name):
         fontsize='x-large'
     )
     plt.tick_params(axis='x', which='major',  labelsize=16)
+    plt.tick_params(axis='y', which='major',  labelsize=16)
     plt.xlabel(x)
     plt.ylabel(y)
     imgdta = io.BytesIO()
