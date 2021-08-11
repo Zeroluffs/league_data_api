@@ -8,9 +8,9 @@ from matplotlib.pyplot import figure
 from api_app.plotting.functions import largeScaleGraphTest
 
 
-def damage_dealt(summoner_name, nGames, region, role):
+def damage_dealt(summoner_name, nGames, region, role, data):
 
-    api_key = 'RGAPI-bed477c4-5dd4-48cd-8711-a6d10f9ce83f'
+    api_key = 'RGAPI-512438ee-6be0-4c87-852e-6d88151224d4'
     watcher = LolWatcher(api_key)
     my_region = 'na1'
     me = watcher.summoner.by_name(region, summoner_name)
@@ -70,7 +70,6 @@ def damage_dealt(summoner_name, nGames, region, role):
                 participants_row["totalDamageShieldedOnTeammates"] = data_dict["totalDamageShieldedOnTeammates"]
                 participants.append(participants_row)
         gameCount = gameCount + 1
-        
 
     df = pd.DataFrame(participants)
     personal_data = df.loc[(df['puuid'] == my_id)]
@@ -78,56 +77,33 @@ def damage_dealt(summoner_name, nGames, region, role):
 
     enemy_data = df.loc[(df['puuid'] != my_id)]
     print(len(enemy_data['totalDamageDealtToChampions']))
-
-    damage_data = damageDone(
-        personal_data, enemy_data, summoner_name)
-    gold_data = goldEarned(
-        personal_data, enemy_data, summoner_name)
-
-    # dataArray = [base64_message, damage_big, gold_data]
-    # dataObject = {
-    #     damage: [base64_message, damage_big],
-    #     gold:}
-
-    dataArray = [damage_data, gold_data]
-
+    dataArray = roleData(personal_data, enemy_data, summoner_name, data)
     return dataArray
 
 
-def damageDone(my_jungle_games, enemy_jungle_games, summoner_name):
-    ax = my_jungle_games.plot(kind="line", x='gameCount',
-                              y='totalDamageDealtToChampions', marker='o', label=summoner_name)
-    enemy_jungle_games.plot(ax=ax, kind='line', x='gameCount',
-                            y='totalDamageDealtToChampions', marker='o', label="Enemy")
-    numberGames = my_jungle_games.shape[0]
-    stitle = str(numberGames) + " games"
-    plt.title("Damage done across" + stitle)
-    plt.legend()
-    plt.xlabel("Game Count")
-    plt.ylabel("Damage Done")
-    imgdata = io.BytesIO()
-    plt.savefig(imgdata, format='svg')
-    imgdata.seek(0)  # rewind the data
-    binary_file_data = imgdata.getvalue()
-    base64_encoded_data = base64.b64encode(binary_file_data)
-    base64_message = base64_encoded_data.decode('utf-8')
-    damage_big = largeScaleGraphTest(
-        my_jungle_games, enemy_jungle_games, 'gameCount', 'totalDamageDealtToChampions', summoner_name)
-    data = [base64_message, damage_big]
-    return data
+def roleData(personal_data, enemy_data, summoner_name, data):
+    yLabelString = data
+    yLabels = data
+    n = len(yLabels)
+    arrayWithData = []
+    for i in range(n):
+        array = normalSizedgraph(
+            personal_data, enemy_data, summoner_name, yLabels[i], yLabelString[i])
+        arrayWithData.append(array)
+    return arrayWithData
 
 
-def goldEarned(my_jungle_games, enemy_jungle_games, summoner_name):
-    ax = my_jungle_games.plot(kind="line", x='gameCount',
-                              y='goldEarned', marker='o', label=summoner_name)
-    enemy_jungle_games.plot(ax=ax, kind='line', x='gameCount',
-                            y='goldEarned', marker='o', label="Enemy")
-    gngames = my_jungle_games.shape[0]
+def normalSizedgraph(personal_games, enemy_games, summoner_name, yLabel, yLabelString):
+    ax = personal_games.plot(kind="line", x='gameCount',
+                             y=yLabel, marker='o', label=summoner_name)
+    enemy_games.plot(ax=ax, kind='line', x='gameCount',
+                     y=yLabel, marker='o', label="Enemy")
+    gngames = personal_games.shape[0]
     sgtitle = str(gngames) + " games"
-    plt.title("Gold Earned across" + sgtitle)
+    plt.title(yLabelString + " across" + " " + sgtitle)
     plt.legend()
     plt.xlabel("Game Count")
-    plt.ylabel("Gold Earned")
+    plt.ylabel(yLabelString)
     imgdata = io.BytesIO()
     plt.savefig(imgdata, format='svg')
     imgdata.seek(0)  # rewind the data
@@ -135,72 +111,6 @@ def goldEarned(my_jungle_games, enemy_jungle_games, summoner_name):
     base64_encoded_data = base64.b64encode(binary_file_data)
     base64_message = base64_encoded_data.decode('utf-8')
     gold_big = largeScaleGraphTest(
-        my_jungle_games, enemy_jungle_games, 'gameCount', 'goldEarned', summoner_name)
+        personal_games, enemy_games, 'gameCount', yLabel, summoner_name)
     dataArray = [base64_message, gold_big]
     return dataArray
-
-
-def largeScaleGraph(jungle_games, ejungle_games, x, y, summoner_name):
-    ax = jungle_games.plot(kind="line", x=x,
-                           y=y, marker='o', label=summoner_name)
-    ejungle_games.plot(ax=ax, kind='line', x=x,
-                       y=y, marker='o', label="Enemy")
-
-    numberGames = str(jungle_games.shape[0])
-    strPlot = numberGames + 'games'
-    plt.title(y + "across" + strPlot)
-    plt.legend()
-    plt.gca().xaxis.set_major_locator(mticker.MultipleLocator(1))
-    plt.xticks(
-        rotation=45,
-        horizontalalignment='right',
-        fontweight='light',
-        fontsize='x-large'
-    )
-    plt.xlabel(x)
-    plt.ylabel(y)
-    imgdta = io.BytesIO()
-    plt.rcParams["figure.figsize"] = (24, 7)
-
-    plt.savefig(imgdta, format='svg')
-    imgdta.seek(0)  # rewind the data
-    binary_file_data = imgdta.getvalue()
-    data_Encode = base64.b64encode(binary_file_data)
-    largeGraph = data_Encode.decode('utf-8')
-    return largeGraph
-
-
-def largeScaleGraph2(jungle_games, ejungle_games, x, y, summoner_name):
-    ax = jungle_games.plot(kind="line", x=x,
-                           y=y, marker='o', label=summoner_name)
-    ejungle_games.plot(ax=ax, kind='line', x=x,
-                       y=y, marker='o', label="Enemy")
-
-    numberGames = str(jungle_games.shape[0])
-    strPlot = numberGames + 'games'
-    plt.title(y + "across" + strPlot)
-    plt.legend()
-    plt.gca().xaxis.set_major_locator(mticker.MultipleLocator(1))
-    plt.xticks(
-        rotation=45,
-        horizontalalignment='right',
-        fontweight='light',
-        fontsize='x-large'
-    )
-    plt.xlabel(x)
-    plt.ylabel(y)
-    imgdta = io.BytesIO()
-    plt.rcParams["figure.figsize"] = (24, 7)
-
-    plt.savefig(imgdta, format='svg')
-    imgdta.seek(0)  # rewind the data
-    binary_file_data = imgdta.getvalue()
-    data_Encode = base64.b64encode(binary_file_data)
-    largeGraph = data_Encode.decode('utf-8')
-    return largeGraph
-
-
-class dataObject:
-    def __init__(self, damage, gold):
-        self.damage = damage
-        self.gold = gold
