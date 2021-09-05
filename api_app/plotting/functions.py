@@ -33,6 +33,7 @@ def largeScaleGraphTest(jungle_games, ejungle_games, x, y, summoner_name):
     imgdta = io.BytesIO()
 
     plt.savefig(imgdta, format='svg')
+    plt.clf()
     imgdta.seek(0)  # rewind the data
     binary_file_data = imgdta.getvalue()
     data_Encode = base64.b64encode(binary_file_data)

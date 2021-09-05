@@ -7,17 +7,21 @@ import matplotlib.ticker as mticker
 from matplotlib.pyplot import figure
 from api_app.plotting.functions import largeScaleGraphTest
 from matplotlib.ticker import MaxNLocator
+import json
+import jsonpickle
+from json import JSONEncoder
 
 
 def damage_dealt(summoner_name, nGames, region, role, data):
 
-    api_key = 'RGAPI-512438ee-6be0-4c87-852e-6d88151224d4'
+    api_key = 'RGAPI-09579684-490d-4cb4-8bcc-8d0daadea290'
     watcher = LolWatcher(api_key)
     my_region = 'na1'
     me = watcher.summoner.by_name(region, summoner_name)
     my_id = me['puuid']
     print(my_id)
    # Return the rank status for me
+    nGames = nGames + 1
     my_matches = watcher.match_v5.matchlist_by_puuid(
         'AMERICAS', puuid=my_id, queue='420', type='ranked', count=nGames)
 
@@ -44,7 +48,7 @@ def damage_dealt(summoner_name, nGames, region, role, data):
         match_detail = watcher.match_v5.by_id(
             region="AMERICAS", match_id=my_matches[n])
         filteredList = list(filter(lambda player: (
-            player['individualPosition'] == individualPosition and player['teamPosition'] == teamPosition), match_detail['info']['participants']))
+            player['teamPosition'] == teamPosition), match_detail['info']['participants']))
         k = len(filteredList)
         for i in range(k):
             if k == 2:
@@ -79,8 +83,6 @@ def damage_dealt(summoner_name, nGames, region, role, data):
                 participants_row["turretsLost"] = data_dict["turretsLost"]
                 participants_row["turretTakedowns"] = data_dict["turretTakedowns"]
 
-
-
                 participants.append(participants_row)
         gameCount = gameCount + 1
 
@@ -99,10 +101,12 @@ def roleData(personal_data, enemy_data, summoner_name, data):
     yLabels = data
     n = len(yLabels)
     arrayWithData = []
+    arrayWithDataObject = []
     for i in range(n):
         array = normalSizedgraph(
             personal_data, enemy_data, summoner_name, yLabels[i], yLabelString[i])
         arrayWithData.append(array)
+        arrayWithDataObject.append(array)
     return arrayWithData
 
 
@@ -120,6 +124,7 @@ def normalSizedgraph(personal_games, enemy_games, summoner_name, yLabel, yLabelS
     plt.xlim(1, gngames)
     imgdata = io.BytesIO()
     plt.savefig(imgdata, format='svg')
+    plt.clf()
     imgdata.seek(0)  # rewind the data
     binary_file_data = imgdata.getvalue()
     base64_encoded_data = base64.b64encode(binary_file_data)
@@ -127,4 +132,15 @@ def normalSizedgraph(personal_games, enemy_games, summoner_name, yLabel, yLabelS
     gold_big = largeScaleGraphTest(
         personal_games, enemy_games, 'gameCount', yLabel, summoner_name)
     dataArray = [base64_message, gold_big]
-    return dataArray
+    objectData = graphArray(base64_message, gold_big)
+    empJSON = jsonpickle.encode(objectData, unpicklable=False)
+    employeeJSONData = json.dumps(empJSON)
+    EmployeeJSON = jsonpickle.decode(employeeJSONData)
+    employeeJSON = json.loads(EmployeeJSON)
+    return employeeJSON
+
+
+class graphArray:
+    def __init__(self, normalGraph, bigGraph):
+        self.normalGraph = normalGraph
+        self.bigGraph = bigGraph
