@@ -14,7 +14,7 @@ from json import JSONEncoder
 
 def damage_dealt(summoner_name, nGames, region, role, data):
 
-    api_key = 'RGAPI-09579684-490d-4cb4-8bcc-8d0daadea290'
+    api_key = 'RGAPI-2b7ffbe4-7dc1-46e3-a586-85e5a52e3f3b'
     watcher = LolWatcher(api_key)
     my_region = 'na1'
     me = watcher.summoner.by_name(region, summoner_name)
@@ -132,7 +132,7 @@ def normalSizedgraph(personal_games, enemy_games, summoner_name, yLabel, yLabelS
     gold_big = largeScaleGraphTest(
         personal_games, enemy_games, 'gameCount', yLabel, summoner_name)
     dataArray = [base64_message, gold_big]
-    objectData = graphArray(base64_message, gold_big)
+    objectData = graphArray(base64_message, gold_big, yLabelString)
     empJSON = jsonpickle.encode(objectData, unpicklable=False)
     employeeJSONData = json.dumps(empJSON)
     EmployeeJSON = jsonpickle.decode(employeeJSONData)
@@ -141,6 +141,7 @@ def normalSizedgraph(personal_games, enemy_games, summoner_name, yLabel, yLabelS
 
 
 class graphArray:
-    def __init__(self, normalGraph, bigGraph):
+    def __init__(self, normalGraph, bigGraph, yLabelString):
         self.normalGraph = normalGraph
         self.bigGraph = bigGraph
+        self.label = yLabelString
